@@ -24,13 +24,22 @@ def print_start():
 def check_file_or_folder(path):
     return os.path.exists(os.path.expandvars(path))
 
+def handle_remove_readonly(func, path, exc_info):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
 def delete_file_or_folder(path):
-    if check_file_or_folder(path):
+    target = os.path.expandvars(path)
+    if os.path.exists(target):
         try:
-            if os.path.isdir(path):
-                shutil.rmtree(path, ignore_errors=True)
+            if os.path.isdir(target):
+                shutil.rmtree(target, onerror=handle_remove_readonly)
             else:
-                os.remove(path)
+                try:
+                    os.remove(target)
+                except PermissionError:
+                    os.chmod(target, stat.S_IWRITE)
+                    os.remove(target)
         except Exception:
             pass
 
@@ -54,12 +63,7 @@ def clean_fivem_files(fivem_base_path):
     paths = [
         os.path.join(fivem_base_path, "FiveM.app", "logs"),
         os.path.join(fivem_base_path, "FiveM.app", "crashes"),
-        os.path.join(fivem_base_path, "FiveM.app", "data", "server-cache"),
-        os.path.join(fivem_base_path, "FiveM.app", "data", "server-cache-priv"),
-        os.path.join(fivem_base_path, "FiveM.app", "data", "nui-storage"),
-        os.path.join(fivem_base_path, "FiveM.app", "data", "game-storage", "game_profiles"),
-        os.path.join(fivem_base_path, "FiveM.app", "data", "nui-storage", "Cache"),
-        os.path.join(fivem_base_path, "FiveM.app", "data", "cef_console.txt")
+        os.path.join(fivem_base_path, "FiveM.app", "data")
     ]
     for path in paths:
         delete_file_or_folder(path)
@@ -79,12 +83,7 @@ def clean_redm_files(redm_base_path):
     paths = [
         os.path.join(redm_base_path, "RedM.app", "logs"),
         os.path.join(redm_base_path, "RedM.app", "crashes"),
-        os.path.join(redm_base_path, "RedM.app", "data", "server-cache"),
-        os.path.join(redm_base_path, "RedM.app", "data", "server-cache-priv"),
-        os.path.join(redm_base_path, "RedM.app", "data", "nui-storage"),
-        os.path.join(redm_base_path, "RedM.app", "data", "game-storage", "game_profiles"),
-        os.path.join(redm_base_path, "RedM.app", "data", "nui-storage", "Cache"),
-        os.path.join(redm_base_path, "RedM.app", "data", "cef_console.txt")
+        os.path.join(redm_base_path, "RedM.app", "data")
     ]
     for path in paths:
         delete_file_or_folder(path)
@@ -93,32 +92,14 @@ def clean_redm_files(redm_base_path):
 def clean_appdata():
     appdata = os.getenv("APPDATA")
     citizenfx = os.path.join(appdata, "CitizenFX")
-    gta_settings = os.path.join(citizenfx, "gta5_settings.xml")
-    fivem_cfg = os.path.join(citizenfx, "fivem.cfg")
-    restored = set()
     if os.path.exists(citizenfx):
-        for item in os.listdir(citizenfx):
-            item_path = os.path.join(citizenfx, item)
-            if os.path.isfile(item_path):
-                if item in ["gta5_settings.xml", "fivem.cfg"]:
-                    restored.add(item_path)
-                else:
-                    try:
-                        os.remove(item_path)
-                    except Exception:
-                        pass
-            elif os.path.isdir(item_path):
-                try:
-                    shutil.rmtree(item_path, ignore_errors=True)
-                except Exception:
-                    pass
+        for name in os.listdir(citizenfx):
+            delete_file_or_folder(os.path.join(citizenfx, name))
+            
     local_appdata = os.getenv("LOCALAPPDATA")
     digital_entitlements = os.path.join(local_appdata, "DigitalEntitlements")
-    if os.path.exists(digital_entitlements):
-        shutil.rmtree(digital_entitlements, ignore_errors=True)
-    for file_path in [gta_settings, fivem_cfg]:
-        if file_path not in restored:
-            print(f"{file_path}: Successfully Restored")
+    delete_file_or_folder(digital_entitlements)
+
     print("AppData cleaned successfully.")
 
 def clean_temp_files():
