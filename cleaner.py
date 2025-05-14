@@ -63,7 +63,8 @@ def clean_fivem_files(fivem_base_path):
     paths = [
         os.path.join(fivem_base_path, "FiveM.app", "logs"),
         os.path.join(fivem_base_path, "FiveM.app", "crashes"),
-        os.path.join(fivem_base_path, "FiveM.app", "data")
+        os.path.join(fivem_base_path, "FiveM.app", "data"),
+        os.path.join(fivem_base_path, "FiveM.app", "citizen")
     ]
     for path in paths:
         delete_file_or_folder(path)
@@ -83,7 +84,8 @@ def clean_redm_files(redm_base_path):
     paths = [
         os.path.join(redm_base_path, "RedM.app", "logs"),
         os.path.join(redm_base_path, "RedM.app", "crashes"),
-        os.path.join(redm_base_path, "RedM.app", "data")
+        os.path.join(redm_base_path, "RedM.app", "data"),
+        os.path.join(redm_base_path, "RedM.app", "citizen")
     ]
     for path in paths:
         delete_file_or_folder(path)
@@ -99,15 +101,18 @@ def clean_appdata():
     local_appdata = os.getenv("LOCALAPPDATA")
     digital_entitlements = os.path.join(local_appdata, "DigitalEntitlements")
     delete_file_or_folder(digital_entitlements)
-
+   
     print("AppData cleaned successfully.")
 
 def clean_temp_files():
     local_appdata = os.getenv("LOCALAPPDATA")
+    
     temp = os.path.join(local_appdata, "Temp")
     delete_file_or_folder(temp)
     crash = os.path.join(local_appdata, "CrashDumps")
     delete_file_or_folder(crash)
+    d3d_cache = os.path.join(local_appdata, "D3DSCache")
+    delete_file_or_folder(d3d_cache)
 
 def clean_windows_temp():
     temp = os.path.join(os.getenv("SYSTEMROOT"), "Temp")
